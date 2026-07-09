@@ -23,23 +23,29 @@ import {
   FileText,
   Edit,
   AlertCircle,
+  Briefcase,
+  Search,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip } from './ui/tooltip';
+import { Input } from './ui/input';
+import { Checkbox } from './ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from './ui/utils';
 
-// WhatsApp Icon Component
-const WhatsAppIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-  </svg>
-);
+// Vacantes disponibles para el flujo "Agregar a vacante" (sin fuente global de vacantes en la app)
+const AVAILABLE_VACANCIES = [
+  { id: 'vac-1', title: 'Product Designer Senior' },
+  { id: 'vac-2', title: 'Frontend Engineer' },
+  { id: 'vac-3', title: 'Backend Developer Node.js' },
+  { id: 'vac-4', title: 'UX Researcher' },
+  { id: 'vac-5', title: 'UI Designer' },
+  { id: 'vac-6', title: 'Product Designer Junior' },
+  { id: 'vac-7', title: 'Motion Designer' },
+  { id: 'vac-8', title: 'Web Developer' },
+  { id: 'vac-9', title: 'Service Designer' },
+  { id: 'vac-10', title: 'Lead UX/UI Designer' },
+];
 
 interface FloatingActionBarProps {
   mode: 'vacancy' | 'general';
@@ -68,8 +74,17 @@ export function FloatingActionBar({
 }: FloatingActionBarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [isSubmenuOpen, setIsSubmenuOpen] = React.useState(false);
+  const [submenuType, setSubmenuType] = React.useState<'stage' | 'vacancy' | null>(null);
   const [submenuPosition, setSubmenuPosition] = React.useState({ top: 0, left: 0, fromBar: false });
   const [isMinimized, setIsMinimized] = React.useState(false);
+  const [vacancySearchQuery, setVacancySearchQuery] = React.useState('');
+  const [selectedVacancyIds, setSelectedVacancyIds] = React.useState<string[]>([]);
+
+  const filteredVacancies = React.useMemo(() => {
+    const query = vacancySearchQuery.trim().toLowerCase();
+    if (!query) return AVAILABLE_VACANCIES;
+    return AVAILABLE_VACANCIES.filter(v => v.title.toLowerCase().includes(query));
+  }, [vacancySearchQuery]);
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -138,7 +153,7 @@ export function FloatingActionBar({
         }
         toast.success('Omitiendo etapa actual...');
     }},
-    { key: 'move_sep', label: 'Mover a etapa', icon: Layers, isSpecial: true },
+    { key: 'move_sep', label: 'Mover a etapa', icon: Layers, isSpecial: true, submenuType: 'stage' as const },
     { key: 'interview', label: 'Agregar entrevista', icon: Video, onClick: () => {
         if (isValentina) {
           toast.error('Por el momento no podemos programar la entrevista. Inténtalo de nuevo más tarde.');
@@ -167,13 +182,7 @@ export function FloatingActionBar({
         }
         toast.success('Abriendo visor de CV...');
     }},
-    { key: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon, onClick: () => {
-        if (isValentina) {
-          toast.error('No es posible abrir WhatsApp en este momento. Inténtalo de nuevo en unos minutos.');
-          return;
-        }
-        candidatePhone ? window.open(`https://wa.me/${candidatePhone.replace(/\D/g, '')}`, '_blank') : toast.error('Teléfono no disponible');
-    }},
+    { key: 'addToVacancy', label: 'Agregar a vacante', icon: Briefcase, isSpecial: true, submenuType: 'vacancy' as const },
     { key: 'email', label: 'Email', icon: Mail, onClick: () => {
         if (isValentina) {
           toast.error('Por el momento no podemos abrir el cliente de correo. Inténtalo más tarde.');
@@ -245,16 +254,19 @@ export function FloatingActionBar({
   }, [isDropdownOpen, isSubmenuOpen]);
 
   // Función para manejar el toggle del submenú con posicionamiento inteligente
-  const handleSubmenuToggle = (e: React.MouseEvent, fromBar: boolean) => {
+  const handleSubmenuToggle = (e: React.MouseEvent, fromBar: boolean, type: 'stage' | 'vacancy') => {
     e.stopPropagation();
     const trigger = e.currentTarget as HTMLElement;
     const rect = trigger.getBoundingClientRect();
-    
+
+    const willOpen = !(isSubmenuOpen && submenuType === type);
+    const menuHeight = type === 'vacancy' ? 380 : 330; // Aproximadamente el alto de cada submenú
+
     // Si viene de la barra (abajo), posicionar arriba
     // Si viene del menú (dropdown), posicionar a la derecha
     if (fromBar) {
       setSubmenuPosition({
-        top: rect.top - 330, // Aproximadamente el alto del menú de etapas
+        top: rect.top - menuHeight,
         left: rect.left,
         fromBar: true
       });
@@ -265,9 +277,15 @@ export function FloatingActionBar({
         fromBar: false
       });
     }
-    
-    setIsSubmenuOpen(!isSubmenuOpen);
+
+    setSubmenuType(type);
+    setIsSubmenuOpen(willOpen);
     setIsDropdownOpen(false);
+
+    if (willOpen && type === 'vacancy') {
+      setVacancySearchQuery('');
+      setSelectedVacancyIds([]);
+    }
   };
 
   return (
@@ -324,16 +342,16 @@ export function FloatingActionBar({
             >
               <div className="flex items-center gap-1.5 sm:gap-2">
                 {visibleActions.map((action) => {
-                  if (action.isSpecial && action.key === 'move_sep') {
+                  if (action.isSpecial) {
                     return (
                       <div key={action.key} className="relative">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => handleSubmenuToggle(e, true)}
+                          onClick={(e) => handleSubmenuToggle(e, true, action.submenuType)}
                           className={cn(
                             "h-auto flex-col gap-0.5 px-1 py-1.5 w-[80px] flex-shrink-0 text-gray-300 hover:text-white hover:bg-gray-800 transition-all",
-                            isSubmenuOpen && submenuPosition.fromBar && "bg-gray-800 text-white"
+                            isSubmenuOpen && submenuPosition.fromBar && submenuType === action.submenuType && "bg-gray-800 text-white"
                           )}
                         >
                           <action.icon className="w-4 h-4" />
@@ -387,7 +405,21 @@ export function FloatingActionBar({
                       className="absolute right-0 bottom-full mb-2 bg-gray-900 border border-gray-700 shadow-2xl rounded-lg backdrop-blur-sm bg-opacity-95 w-64 max-h-[70vh] overflow-y-auto z-50"
                     >
                       {extraActions.map((action) => {
-                        if (action.isSpecial) return null;
+                        if (action.isSpecial) {
+                          return (
+                            <div
+                              key={action.key}
+                              className="flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer transition-colors"
+                              onClick={(e) => handleSubmenuToggle(e, false, action.submenuType)}
+                            >
+                              <div className="flex items-center">
+                                <action.icon className="w-4 h-4 mr-3 flex-shrink-0" />
+                                <span>{action.label}</span>
+                              </div>
+                              <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                            </div>
+                          );
+                        }
 
                         return (
                           <div
@@ -403,23 +435,6 @@ export function FloatingActionBar({
                           </div>
                         );
                       })}
-
-                      {/* Renderizado especial para 'Mover a etapa' si está en el menú Más */}
-                      {mode === 'vacancy' && extraActions.some(a => a.key === 'move_sep') && (
-                        <>
-                          <div className="h-px bg-gray-700 my-1" />
-                          <div
-                            className="flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer transition-colors"
-                            onClick={(e) => handleSubmenuToggle(e, false)}
-                          >
-                            <div className="flex items-center">
-                              <Layers className="w-4 h-4 mr-3 flex-shrink-0" />
-                              <span>Mover a etapa</span>
-                            </div>
-                            <ChevronRight className="w-4 h-4 flex-shrink-0" />
-                          </div>
-                        </>
-                      )}
                     </motion.div>
                   )}
                 </div>
@@ -429,46 +444,122 @@ export function FloatingActionBar({
         </AnimatePresence>
       </motion.div>
 
-      {/* Portal para el submenú de etapas (Renderizado fuera para evitar recortes) */}
+      {/* Portal para los submenús (Renderizado fuera para evitar recortes) */}
       {isSubmenuOpen && createPortal(
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           className="fixed bg-gray-900 border border-gray-700 shadow-2xl rounded-lg backdrop-blur-sm bg-opacity-95 w-72 max-h-[70vh] overflow-y-auto z-[100] py-2"
           ref={submenuRef}
-          style={{ 
-            top: `${submenuPosition.top}px`, 
-            left: `${submenuPosition.left}px` 
+          style={{
+            top: `${submenuPosition.top}px`,
+            left: `${submenuPosition.left}px`
           }}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-3 py-1.5 mb-1 border-b border-gray-800">
-            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Mover a etapa</div>
-            <button onClick={() => setIsSubmenuOpen(false)} className="text-gray-500 hover:text-white">
-              <RotateCcw className="w-3 h-3" />
-            </button>
-          </div>
-          {['Screening con Talent', 'Evaluación CV', 'Serena AI', 'Psicométrico', 'Caso Product Sense', 'Entrevista Hiring', 'Antecedentes', 'Seleccionado'].map((stage) => (
-            <div
-              key={stage}
-              className="flex items-center px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-blue-600 cursor-pointer transition-colors mx-1 rounded-md mb-0.5"
-              onClick={() => {
-                if (isValentina) {
-                  toast.error('Hubo un problema al procesar la acción de reclutamiento. Estamos trabajando para solucionarlo.');
-                  setIsDropdownOpen(false);
-                  setIsSubmenuOpen(false);
-                  return;
-                }
-                toast.success(`✓ Candidato movido a: ${stage}`);
-                setIsDropdownOpen(false);
-                setIsSubmenuOpen(false);
-              }}
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2.5" />
-              <span>{stage}</span>
-            </div>
-          ))}
+          {submenuType === 'stage' && (
+            <>
+              <div className="flex items-center justify-between px-3 py-1.5 mb-1 border-b border-gray-800">
+                <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Mover a etapa</div>
+                <button onClick={() => setIsSubmenuOpen(false)} className="text-gray-500 hover:text-white">
+                  <RotateCcw className="w-3 h-3" />
+                </button>
+              </div>
+              {['Screening con Talent', 'Evaluación CV', 'Serena AI', 'Psicométrico', 'Caso Product Sense', 'Entrevista Hiring', 'Antecedentes', 'Seleccionado'].map((stage) => (
+                <div
+                  key={stage}
+                  className="flex items-center px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-blue-600 cursor-pointer transition-colors mx-1 rounded-md mb-0.5"
+                  onClick={() => {
+                    if (isValentina) {
+                      toast.error('Hubo un problema al procesar la acción de reclutamiento. Estamos trabajando para solucionarlo.');
+                      setIsDropdownOpen(false);
+                      setIsSubmenuOpen(false);
+                      return;
+                    }
+                    toast.success(`✓ Candidato movido a: ${stage}`);
+                    setIsDropdownOpen(false);
+                    setIsSubmenuOpen(false);
+                  }}
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2.5" />
+                  <span>{stage}</span>
+                </div>
+              ))}
+            </>
+          )}
+
+          {submenuType === 'vacancy' && (
+            <>
+              <div className="px-3 py-1.5 mb-2 border-b border-gray-800">
+                <div className="text-xs text-gray-500 font-bold tracking-wider">Agregar a vacante</div>
+              </div>
+
+              <div className="px-3 pb-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+                  <Input
+                    autoFocus
+                    value={vacancySearchQuery}
+                    onChange={(e) => setVacancySearchQuery(e.target.value)}
+                    placeholder="Buscar vacante..."
+                    className="h-8 pl-8 text-xs bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus-visible:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="max-h-[220px] overflow-y-auto px-1 space-y-0.5">
+                {filteredVacancies.length === 0 ? (
+                  <div className="px-3 py-4 text-center text-xs text-gray-500">No se encontraron vacantes</div>
+                ) : (
+                  filteredVacancies.map((vacancy) => {
+                    const checked = selectedVacancyIds.includes(vacancy.id);
+                    return (
+                      <label
+                        key={vacancy.id}
+                        className="flex items-center gap-2.5 px-2.5 py-2 mx-1 rounded-md text-xs text-gray-300 hover:bg-gray-800 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(isChecked) => {
+                            setSelectedVacancyIds(prev =>
+                              isChecked ? [...prev, vacancy.id] : prev.filter(id => id !== vacancy.id)
+                            );
+                          }}
+                        />
+                        <span>{vacancy.title}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="px-3 pt-2 mt-1 border-t border-gray-800">
+                <Button
+                  size="sm"
+                  disabled={selectedVacancyIds.length === 0}
+                  onClick={() => {
+                    if (isValentina) {
+                      toast.error('No ha sido posible agregar al candidato a la vacante. Estamos trabajando para solucionarlo.');
+                      setIsDropdownOpen(false);
+                      setIsSubmenuOpen(false);
+                      return;
+                    }
+                    const chosen = AVAILABLE_VACANCIES.filter(v => selectedVacancyIds.includes(v.id));
+                    const label = chosen.length === 1 ? chosen[0].title : `${chosen.length} vacantes`;
+                    toast.success(`✓ Candidato agregado a: ${label}`);
+                    setIsDropdownOpen(false);
+                    setIsSubmenuOpen(false);
+                    setSelectedVacancyIds([]);
+                    setVacancySearchQuery('');
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40"
+                >
+                  Agregar{selectedVacancyIds.length > 0 ? ` (${selectedVacancyIds.length})` : ''}
+                </Button>
+              </div>
+            </>
+          )}
         </motion.div>,
         document.body
       )}

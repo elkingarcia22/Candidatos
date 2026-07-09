@@ -24,7 +24,7 @@ export default function App() {
     <OnboardingProvider>
       <RouterProvider router={router} />
       <OnboardingManager />
-      <Toaster position="top-right" />
+      <Toaster position="top-right" richColors />
     </OnboardingProvider>
   );
 }

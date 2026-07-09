@@ -716,53 +716,9 @@ export function CandidatesDashboardPage() {
                           </div>
                         </div>
                       </th>
-                      
 
-                      
-                      {/* Estado vacante actual */}
-                      <th className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm px-6 py-4 border-b border-gray-100 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)]">
-                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-700">
-                          Estado actual
-                          <div className="flex items-center">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className={cn("h-6 w-6 rounded-md hover:bg-gray-200", colFilterStatus.length > 0 && "text-blue-600 bg-blue-50")}><ListFilter className="h-3.5 w-3.5" /></Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-56 p-2.5 rounded-lg shadow-lg border border-gray-100" align="start">
-                                <div className="text-xs font-semibold mb-2.5 px-1.5 text-gray-500">Filtrar por Estado</div>
-                                <div className="space-y-0.5">
-                                  {[
-                                    { value: 'active', label: 'En proceso' },
-                                    { value: 'action_required', label: 'Acción requerida' },
-                                    { value: 'hired', label: 'Contratado' },
-                                    { value: 'rejected', label: 'Descartado' }
-                                  ].map(s => (
-                                    <label key={s.value} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-gray-50 rounded-md cursor-pointer transition-colors group">
-                                      <Checkbox 
-                                        checked={colFilterStatus.includes(s.value)} 
-                                        onCheckedChange={(checked) => {
-                                          setColFilterStatus(prev => checked ? [...prev, s.value] : prev.filter(v => v !== s.value))
-                                        }} 
-                                        className="mt-0.5"
-                                      />
-                                      <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900">{s.label}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                                {colFilterStatus.length > 0 && (
-                                  <div className="flex justify-end mt-3 px-1">
-                                    <Button variant="ghost" size="sm" onClick={() => setColFilterStatus([])} className="h-6 text-[10px]">Limpiar</Button>
-                                  </div>
-                                )}
-                              </PopoverContent>
-                            </Popover>
-                            <Button variant="ghost" size="icon" className={cn("h-6 w-6 rounded-md hover:bg-gray-200", sortConfig?.key === 'status' && "text-blue-600")} onClick={() => handleSort('status')}>
-                              {sortConfig?.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5" />}
-                            </Button>
-                          </div>
-                        </div>
-                      </th>
-                      
+
+
                       {/* Origen */}
                       <th className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm px-6 py-4 border-b border-gray-100 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)] text-center">
                         <div className="flex items-center justify-center gap-1.5 text-[13px] font-semibold text-gray-700">
@@ -817,7 +773,7 @@ export function CandidatesDashboardPage() {
                   <tbody className="divide-y divide-gray-50">
                     {sortedCandidates.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-20 text-center">
+                        <td colSpan={5} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center justify-center text-gray-400">
                             <Users className="w-12 h-12 mb-4 opacity-20" />
                             <p className="text-sm font-semibold">No se encontraron candidatos</p>
@@ -878,35 +834,6 @@ export function CandidatesDashboardPage() {
                             </button>
                           </td>
 
-                          <td className="px-6 py-5">
-                            {candidate.displayStatus && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const appId = candidate.statusKey === 'action_required'
-                                    ? candidate.vacanciesList?.find((v: any) => v.blocker?.priority === 'high')?.id
-                                    : candidate.applications?.[0]?.id;
-                                  handleCandidateClick(candidate.id, appId);
-                                }}
-                                className={cn(
-                                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer hover:ring-2 transition-all",
-                                  candidate.statusKey === 'active' && "bg-blue-50 text-blue-700 hover:ring-blue-200",
-                                  candidate.statusKey === 'hired' && "bg-emerald-50 text-emerald-700 hover:ring-emerald-200",
-                                  candidate.statusKey === 'rejected' && "bg-red-50 text-red-700 hover:ring-red-200",
-                                  candidate.statusKey === 'action_required' && "bg-orange-50 text-orange-600 hover:ring-orange-200"
-                                )}
-                              >
-                                <span className={cn(
-                                  "w-1.5 h-1.5 rounded-full",
-                                  candidate.statusKey === 'active' && "bg-blue-500",
-                                  candidate.statusKey === 'hired' && "bg-emerald-500",
-                                  candidate.statusKey === 'rejected' && "bg-red-500",
-                                  candidate.statusKey === 'action_required' && "bg-orange-500"
-                                )} />
-                                {candidate.displayStatus}
-                              </button>
-                            )}
-                          </td>
                           <td className="px-6 py-5 text-center">
                             {candidate.origin === 'serena' ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-semibold text-gray-700 rounded-lg"
