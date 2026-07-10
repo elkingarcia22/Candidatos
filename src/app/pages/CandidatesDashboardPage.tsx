@@ -1,14 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { 
-  ArrowLeft, 
-  Search, 
-  ChevronDown, 
-  ChevronRight,
-  MoreVertical, 
-  Sparkles, 
-  Upload, 
-  Download, 
+import {
+  ArrowLeft,
+  Search,
+  ChevronDown,
+  Sparkles,
+  Upload,
+  Download,
   Plus,
   Filter,
   MapPin,
@@ -18,17 +16,11 @@ import {
   Users,
   ShieldCheck,
   MessageCircle,
-  Mail,
-  Phone,
   FileText,
-  Printer,
-  Trash2,
   X,
   Briefcase,
   Check,
-  Edit3,
   FilePlus,
-  Eye,
   UserPlus,
   FileUp,
   Table2,
@@ -50,6 +42,7 @@ import { Drawer } from '../components/ui/drawer';
 import { CandidateDetailDrawer } from '../components/CandidateDetailDrawer';
 import { SerenaIAPanel } from '../components/SerenaIAPanel';
 import { MainMenuSidebar } from '../components/MainMenuSidebar';
+import { CandidateRowActionsMenu } from '../components/CandidateRowActionsMenu';
 import { Checkbox } from '../components/ui/checkbox';
 import { Input } from '../components/ui/input';
 import { Slider } from '../components/ui/slider';
@@ -798,8 +791,8 @@ export function CandidatesDashboardPage() {
                       </tr>
                     ) : (
                       sortedCandidates.map((candidate) => (
-                        <tr 
-                          key={candidate.id} 
+                        <tr
+                          key={candidate.id}
                           onClick={() => handleCandidateClick(candidate.id)}
                           className="hover:bg-gray-50 transition-colors cursor-pointer group"
                         >
@@ -853,68 +846,7 @@ export function CandidatesDashboardPage() {
                           </td>
 
                           <td className="px-6 py-5 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-8 h-8 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
-                                >
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl shadow-2xl border-gray-100 bg-white/95 backdrop-blur-sm">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCandidateClick(candidate.id);
-                                  }}
-                                  className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-blue-50 focus:bg-blue-50 transition-colors group"
-                                >
-                                  <Eye className="w-4 h-4 text-gray-400 group-hover:text-blue-600 group-focus:text-blue-600" />
-                                  <span className="text-xs font-semibold text-gray-600 group-hover:text-blue-600 group-focus:text-blue-600">Ver detalle</span>
-                                </DropdownMenuItem>
-
-                                <DropdownMenuItem onClick={(e) => e.stopPropagation()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-blue-50 focus:bg-blue-50 transition-colors group">
-                                  <Edit3 className="w-4 h-4 text-gray-400 group-hover:text-blue-600 group-focus:text-blue-600" />
-                                  <span className="text-xs font-semibold text-gray-600 group-hover:text-blue-600 group-focus:text-blue-600">Editar candidato</span>
-                                </DropdownMenuItem>
-                              
-                                <div className="my-1 h-px bg-gray-100" />
-                                
-                                {[
-                                  { icon: Phone, label: 'Llamar' },
-                                  { icon: Mail, label: 'Enviar email' },
-                                  { icon: FilePlus, label: 'Agregar documento' },
-                                ].map((item, idx) => (
-                                  <DropdownMenuItem key={idx} onClick={(e) => e.stopPropagation()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-lg hover:bg-gray-50 focus:bg-gray-50">
-                                    <item.icon className="w-4 h-4 text-gray-400" />
-                                    <span className="text-xs font-medium text-gray-600">{item.label}</span>
-                                  </DropdownMenuItem>
-                                ))}
-
-                                <div className="my-1 h-px bg-gray-100" />
-
-                                {[
-                                  { icon: Eye, label: 'Ver CV' },
-                                  { icon: Download, label: 'Descargar CV' },
-                                  { icon: Printer, label: 'Imprimir CV' },
-                                ].map((item, idx) => (
-                                  <DropdownMenuItem key={idx} onClick={(e) => e.stopPropagation()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-lg hover:bg-gray-50 focus:bg-gray-50">
-                                    <item.icon className="w-4 h-4 text-gray-400" />
-                                    <span className="text-xs font-medium text-gray-600">{item.label}</span>
-                                  </DropdownMenuItem>
-                                ))}
-
-                                <div className="my-1 h-px bg-gray-100" />
-
-                                <DropdownMenuItem onClick={(e) => e.stopPropagation()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-red-50 focus:bg-red-50 transition-colors group">
-                                  <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-600 group-focus:text-red-600" />
-                                  <span className="text-xs font-semibold text-gray-600 group-hover:text-red-600 group-focus:text-red-600">Eliminar candidato</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <CandidateRowActionsMenu candidateId={candidate.id} onViewDetail={handleCandidateClick} />
                           </td>
                         </tr>
                       ))
